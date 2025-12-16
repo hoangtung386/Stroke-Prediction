@@ -1,0 +1,5 @@
+{
+  "name": "StrokeGuard AI",
+  "description": "A comprehensive medical analysis system that evaluates stroke risk factors using advanced AI reasoning. Users input clinical parameters to receive an immediate risk assessment and health recommendations.",
+  "requestFramePermissions": []
+}
