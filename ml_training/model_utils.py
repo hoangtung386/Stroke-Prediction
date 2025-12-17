@@ -69,12 +69,7 @@ def get_base_models():
             random_state=SEED
         ),
         
-        'NGBoost': NGBClassifier(
-            n_estimators=100,
-            learning_rate=0.01,
-            random_state=SEED,
-            verbose=False
-        )
+
     }
     return models
 

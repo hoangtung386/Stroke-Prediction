@@ -39,6 +39,10 @@ pip install -r requirements.txt
 python main.py
 ```
 
+> [!IMPORTANT] 
+> You **MUST** train the models using `python main.py` (or a specific variant) **BEFORE** starting the API server. 
+> The API server will fail with "No models loaded" if skip this step.
+
 ### 3. Train Specific Model
 
 ```bash
@@ -249,6 +253,37 @@ Edit `config.py` to customize:
 
 **Issue**: Kaggle authentication
 - **Solution**: Set up Kaggle API credentials: `~/.kaggle/kaggle.json`
+
+**Issue**: "No models loaded" when starting API server
+- **Cause**: You haven't trained any models yet. The repository does not include pre-trained model files (they are too large).
+- **Solution**: Run `python main.py --variant drop_imbalanced` (fastest) or `python main.py` (full suite) to train models first.
+
+## 🌐 Web App Usage
+
+### Starting the System
+1. **Train a model** (if you haven't yet):
+   ```bash
+   cd ml_training
+   python main.py --variant drop_imbalanced
+   ```
+2. **Start the API Backend**:
+   ```bash
+   python api_server.py
+   ```
+   *Keep this terminal open.*
+
+3. **Start the Frontend** (in a new terminal):
+   ```bash
+   # In the project root
+   npm run dev
+   ```
+   Open the link shown (usually `http://localhost:3000`).
+
+### Stopping the Services
+To stop the servers, click in the terminal window and press:
+- `Ctrl + C` (Control key + C)
+
+If that doesn't work, close the terminal window.
 
 ## 📝 Notes
 
