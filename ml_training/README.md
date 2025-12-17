@@ -110,7 +110,7 @@ from predict_service import StrokePredictionService
 
 # Load trained model
 service = StrokePredictionService(
-    model_dir='Model for Drop Missing Value Imbalanced',
+    model_dir='models/drop_imbalanced',
     model_suffix='imbalanced_drop'
 )
 
