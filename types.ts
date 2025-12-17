@@ -44,9 +44,18 @@ export interface PatientData {
 export interface RiskAnalysis {
   riskScore: number; // 0 to 100
   riskLevel: 'Low' | 'Moderate' | 'High' | 'Critical';
-  reasoning: string;
+  hasPrediction: boolean;
+  factors: string[];
   recommendations: string[];
-  contributingFactors: { name: string; impact: 'High' | 'Medium' | 'Low' }[];
+  
+  // Optional fields for backward compatibility
+  reasoning?: string;
+  contributingFactors?: { name: string; impact: 'High' | 'Medium' | 'Low' }[];
+  
+  // ML Model specific fields
+  confidence?: number;
+  modelUsed?: string;
+  modelDescription?: string;
 }
 
 export const DEFAULT_PATIENT_DATA: PatientData = {

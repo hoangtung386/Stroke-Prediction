@@ -1,6 +1,6 @@
 /**
  * Machine Learning Model Integration Service
- * Use this instead of geminiService.ts for actual ML predictions
+ * Replaces Gemini AI with actual trained ML models
  */
 
 interface PatientData {
@@ -23,11 +23,20 @@ interface PredictionResult {
   confidence: number;  // 0-1
   probability_no_stroke: number;
   probability_stroke: number;
-  model_used?: string;
+  model_id?: string;
+  model_name?: string;
+  model_description?: string;
+}
+
+interface ModelInfo {
+  id: string;
+  name: string;
+  description: string;
 }
 
 interface BatchPredictionResult {
-  model_used: string;
+  model_id: string;
+  model_name: string;
   count: number;
   results: PredictionResult[];
 }
@@ -44,11 +53,11 @@ class MLModelService {
    */
   async predict(
     patientData: PatientData,
-    modelName?: string
+    modelId?: string
   ): Promise<PredictionResult> {
     const payload = {
       ...patientData,
-      ...(modelName && { model: modelName })
+      ...(modelId && { model_id: modelId })
     };
 
     const response = await fetch(`${this.apiUrl}/predict`, {
@@ -72,11 +81,11 @@ class MLModelService {
    */
   async predictBatch(
     patients: PatientData[],
-    modelName?: string
+    modelId?: string
   ): Promise<BatchPredictionResult> {
     const payload = {
       patients,
-      ...(modelName && { model: modelName })
+      ...(modelId && { model_id: modelId })
     };
 
     const response = await fetch(`${this.apiUrl}/predict-batch`, {
@@ -96,9 +105,9 @@ class MLModelService {
   }
 
   /**
-   * Get list of available models
+   * Get list of available models with details
    */
-  async getAvailableModels(): Promise<string[]> {
+  async getAvailableModels(): Promise<ModelInfo[]> {
     const response = await fetch(`${this.apiUrl}/models`);
     
     if (!response.ok) {
@@ -110,9 +119,37 @@ class MLModelService {
   }
 
   /**
+   * Compare predictions from multiple models
+   */
+  async compareModels(
+    patientData: PatientData,
+    modelIds?: string[]
+  ): Promise<any> {
+    const payload = {
+      patient_data: patientData,
+      ...(modelIds && { model_ids: modelIds })
+    };
+
+    const response = await fetch(`${this.apiUrl}/compare`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Model comparison failed');
+    }
+
+    return await response.json();
+  }
+
+  /**
    * Check API health
    */
-  async healthCheck(): Promise<{ status: string; models_loaded: string[] }> {
+  async healthCheck(): Promise<{ status: string; models_loaded: number; available_models: string[] }> {
     const response = await fetch(`${this.apiUrl}/health`);
     
     if (!response.ok) {
@@ -131,34 +168,52 @@ class MLModelService {
     hasPrediction: boolean;
     factors: string[];
     recommendations: string[];
+    confidence?: number;
+    modelUsed?: string;
+    modelDescription?: string;
   } {
     const riskScore = Math.round(result.probability * 100);
     
-    // Determine risk factors based on input
-    // This is a simplified version - you may want to enhance this
+    // Determine risk factors
     const factors: string[] = [];
     
     if (result.probability > 0.7) {
-      factors.push('High probability of stroke risk');
+      factors.push('High probability of stroke risk detected');
+      factors.push('Multiple risk factors present');
     } else if (result.probability > 0.4) {
-      factors.push('Moderate stroke risk factors present');
+      factors.push('Moderate stroke risk factors identified');
+      factors.push('Some concerning indicators present');
     } else {
-      factors.push('Low stroke risk profile');
+      factors.push('Low overall stroke risk profile');
+      factors.push('Favorable clinical indicators');
+    }
+
+    // Add model confidence as a factor
+    if (result.confidence) {
+      factors.push(`Model confidence: ${(result.confidence * 100).toFixed(1)}%`);
     }
 
     // Generate recommendations
     const recommendations: string[] = [];
     
-    if (riskScore > 50) {
-      recommendations.push('Consult with a healthcare provider immediately');
-      recommendations.push('Monitor blood pressure and glucose levels regularly');
-      recommendations.push('Consider lifestyle modifications');
-    } else if (riskScore > 30) {
-      recommendations.push('Regular health check-ups recommended');
-      recommendations.push('Maintain healthy lifestyle habits');
+    if (riskScore >= 70) {
+      recommendations.push('⚠️ URGENT: Consult with a healthcare provider immediately');
+      recommendations.push('📊 Schedule comprehensive cardiovascular screening');
+      recommendations.push('💊 Discuss preventive medication options');
+      recommendations.push('🏃 Implement immediate lifestyle modifications');
+      recommendations.push('📱 Consider continuous health monitoring');
+    } else if (riskScore >= 40) {
+      recommendations.push('🏥 Schedule routine health check-up within 2-4 weeks');
+      recommendations.push('📈 Monitor blood pressure and glucose levels regularly');
+      recommendations.push('🥗 Maintain healthy diet and exercise routine');
+      recommendations.push('🚭 Avoid smoking and excessive alcohol consumption');
+      recommendations.push('💤 Ensure adequate sleep and stress management');
     } else {
-      recommendations.push('Continue healthy lifestyle practices');
-      recommendations.push('Regular preventive care');
+      recommendations.push('✅ Continue current healthy lifestyle practices');
+      recommendations.push('📅 Maintain annual preventive care appointments');
+      recommendations.push('🏋️ Regular physical activity recommended');
+      recommendations.push('🥦 Balanced nutrition and hydration');
+      recommendations.push('🧘 Stress management and mental wellness');
     }
 
     return {
@@ -167,6 +222,9 @@ class MLModelService {
       hasPrediction: true,
       factors,
       recommendations,
+      confidence: result.confidence,
+      modelUsed: result.model_name,
+      modelDescription: result.model_description,
     };
   }
 }
@@ -175,4 +233,4 @@ class MLModelService {
 export const mlModelService = new MLModelService();
 
 // Export types
-export type { PatientData, PredictionResult, BatchPredictionResult };
+export type { PatientData, PredictionResult, BatchPredictionResult, ModelInfo };
