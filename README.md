@@ -33,6 +33,29 @@
 - Node.js 18 or higher
 - ~2GB disk space for trained models
 
+### Installation with Pre-trained Models
+
+To use the pre-trained models without training from scratch:
+
+1. **Download Source Code**: Clone this repository.
+2. **Download Models**: Go to the [Releases](https://github.com/hoangtung386/Stroke-Prediction/releases) page and download `models.zip`.
+3. **Setup Directory**: Extract the zip file into the `ml_training/` folder. Ensure the structure matches:
+
+```text
+ml_training/
+├── models/
+│   ├── drop_imbalanced/
+│   ├── mean_smote/
+│   └── ...
+├── api_server.py
+└── ...
+```
+
+4. **Run Server**:
+```bash
+python ml_training/api_server.py
+```
+
 ### Installation & Setup
 
 ```bash
