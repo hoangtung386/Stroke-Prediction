@@ -29,72 +29,99 @@ git clone <your-repo-url>
 cd Stroke-Prediction
 ```
 
-### 2. Train Your First Model (30-60 min)
+### 2. Install Dependencies
 
 ```bash
 cd ml_training
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Train model (automated script)
-# Windows:
-quick_start.bat
-
-# Linux/Mac:
-./quick_start.sh
-
-# Or manually:
-python train_drop_imbalanced.py
 ```
 
-### 3. Start API Server (Terminal 1)
+### 3. Train Your First Model
+
+> [!IMPORTANT] 
+> You **MUST** train the models **BEFORE** starting the API server. 
+> The API server will fail with "No models loaded" if you skip this step.
 
 ```bash
+# Train a single model (fastest, ~30-60 min)
+python main.py --variant agegroup_imbalanced
+
+# Or train all 10 models (~2-4 hours)
+python main.py
+```
+
+### 4. Start API Server (Terminal 1)
+
+```bash
+cd ml_training
 python api_server.py
 # API will run on http://localhost:5000
 ```
 
-### 4. Start React App (Terminal 2)
+### 5. Start React App (Terminal 2)
 
 ```bash
-cd ..  # Back to root
+cd ..  # Back to project root
 npm install
-npm start
+npm run dev
 # App will open on http://localhost:5173
 ```
 
-### 5. Test the App! 🎉
+### 6. Test the App! 🎉
 
 - Select a model from dropdown
 - Fill in patient data
 - Click "Analyze Risk"
 - View prediction results
 
+### Stopping the Services
+
+To stop the servers, press `Ctrl + C` in each terminal window.
+
 ---
 
-## 📚 Documentation
+## � Project Structure
 
-### For Training & Setup
-👉 **[TRAINING GUIDE](ml_training/TRAINING_GUIDE.md)** - Complete step-by-step training guide
-
-### For Integration
-👉 **[WEB INTEGRATION](ml_training/WEB_INTEGRATION.md)** - How to integrate ML models into web app
-
-### For Overview
-👉 **[FINAL SUMMARY](FINAL_SUMMARY.md)** - Complete project summary & checklist
+```
+Stroke-Prediction/
+├── ml_training/                       # ML training pipeline
+│   ├── config.py                      # Configuration and constants
+│   ├── data_preprocessing.py          # Data preprocessing utilities
+│   ├── model_utils.py                 # Model training utilities
+│   ├── predict_service.py             # Prediction service for web integration
+│   ├── api_server.py                  # Flask API server
+│   ├── main.py                        # Main orchestrator
+│   │
+│   ├── train_drop_imbalanced.py       # Drop + Imbalanced
+│   ├── train_mean_imbalanced.py       # Mean + Imbalanced
+│   ├── train_mice_imbalanced.py       # MICE + Imbalanced
+│   ├── train_agegroup_imbalanced.py   # Age Group + Imbalanced
+│   ├── train_augmented_imbalanced.py  # Augmented + Imbalanced
+│   │
+│   ├── train_drop_smote.py            # Drop + SMOTE
+│   ├── train_mean_smote.py            # Mean + SMOTE
+│   ├── train_mice_smote.py            # MICE + SMOTE
+│   ├── train_agegroup_smote.py        # Age Group + SMOTE
+│   └── train_augmented_smote.py       # Augmented + SMOTE
+│
+├── components/                        # React components
+├── services/                          # API services
+├── App.tsx                            # Main React app
+└── index.html                         # HTML entry point
+```
 
 ---
 
 ## 🏗️ Architecture
 
 ### ML Training Pipeline
+
 ```
 Dataset → Preprocessing → Imputation → Train/Test Split
     ↓
 Base Models (9 algorithms):
-├── Logistic Regression
-├── Neural Network  
+├── Logistic Regression (AGD)
+├── Neural Network (5 hidden layers)
 ├── Random Forest
 ├── Gradient Boosting
 ├── CatBoost
@@ -104,9 +131,9 @@ Base Models (9 algorithms):
 └── NGBoost
     ↓
 Ensemble Layers:
-├── Voting Ensemble
-├── Blending Ensemble  
-└── Fusion Ensemble
+├── Voting Ensemble (soft voting)
+├── Blending Ensemble (stacking with meta-classifier)
+└── Fusion Ensemble (stacking with passthrough)
     ↓
 Dense Stacking Ensemble (DSE)
     ↓
@@ -124,32 +151,66 @@ Trained Model (95-97% accuracy)
 ## 📊 Available Models
 
 ### Imbalanced Datasets
-1. **Drop + Imbalanced** - Drop missing values
-2. **Mean + Imbalanced** - Mean imputation
-3. **MICE + Imbalanced** - MICE imputation
-4. **Age Group + Imbalanced** - Age-based imputation
-5. **Augmented + Imbalanced** - Combined methods
+| Variant | Description | Command |
+|---------|-------------|---------|
+| Drop + Imbalanced | Drop missing values | `python main.py --variant drop_imbalanced` |
+| Mean + Imbalanced | Mean imputation | `python main.py --variant mean_imbalanced` |
+| MICE + Imbalanced | MICE imputation | `python main.py --variant mice_imbalanced` |
+| Age Group + Imbalanced | Age-based imputation | `python main.py --variant agegroup_imbalanced` |
+| Augmented + Imbalanced | Combined methods | `python main.py --variant augmented_imbalanced` |
 
 ### SMOTE Balanced Datasets (Better Recall)
-6. **Drop + SMOTE** - Drop + BorderlineSMOTE
-7. **Mean + SMOTE** - Mean + BorderlineSMOTE
-8. **MICE + SMOTE** - MICE + BorderlineSMOTE
-9. **Age Group + SMOTE** - Age Group + BorderlineSMOTE
-10. **Augmented + SMOTE** - Augmented + BorderlineSMOTE ⭐ **Best**
+| Variant | Description | Command |
+|---------|-------------|---------|
+| Drop + SMOTE | Drop + BorderlineSMOTE | `python main.py --variant drop_smote` |
+| Mean + SMOTE | Mean + BorderlineSMOTE | `python main.py --variant mean_smote` |
+| MICE + SMOTE | MICE + BorderlineSMOTE | `python main.py --variant mice_smote` |
+| Age Group + SMOTE | Age Group + BorderlineSMOTE | `python main.py --variant agegroup_smote` |
+| Augmented + SMOTE ⭐ | Augmented + BorderlineSMOTE | `python main.py --variant augmented_smote` |
 
 ---
 
-## 📸 Screenshots
+## � Using Trained Models
 
-### Model Selector
-![Model Selection](docs/images/model-selector.png)
+### Python API
 
-*Choose from 10 trained ML models*
+```python
+from predict_service import StrokePredictionService
 
-### Prediction Results
-![Results Dashboard](docs/images/results.png)
+# Load trained model
+service = StrokePredictionService(
+    model_dir='models/agegroup_imbalanced',
+    model_suffix='imbalanced_agegroup'
+)
 
-*Detailed risk analysis with confidence scores*
+# Patient data
+patient = {
+    'age': 67,
+    'gender': 'Male',
+    'hypertension': 0,
+    'heart_disease': 1,
+    'ever_married': 'Yes',
+    'work_type': 'Private',
+    'Residence_type': 'Urban',
+    'avg_glucose_level': 228.69,
+    'bmi': 36.6,
+    'smoking_status': 'formerly smoked'
+}
+
+# Predict
+result = service.predict(patient)
+
+print(f"Prediction: {result['prediction']}")  # 0 or 1
+print(f"Probability: {result['probability']:.2%}")
+print(f"Risk Level: {result['risk_level']}")  # Low/Medium/High
+```
+
+### Batch Prediction
+
+```python
+patients_list = [patient1, patient2, patient3]
+results = service.predict_batch(patients_list)
+```
 
 ---
 
@@ -181,7 +242,7 @@ Content-Type: application/json
   "avg_glucose_level": 228.69,
   "bmi": 36.6,
   "smoking_status": "formerly smoked",
-  "model_id": "drop_imbalanced"
+  "model_id": "agegroup_imbalanced"
 }
 ```
 
@@ -192,7 +253,7 @@ Content-Type: application/json
 
 {
   "patient_data": { ... },
-  "model_ids": ["drop_imbalanced", "mean_smote"]
+  "model_ids": ["agegroup_imbalanced", "augmented_smote"]
 }
 ```
 
@@ -210,39 +271,35 @@ Content-Type: application/json
 
 ---
 
-## 🛠️ Development
+## � Model Artifacts
 
-### Project Structure
-```
-Stroke-Prediction/
-├── ml_training/          # ML training pipeline
-│   ├── train_*.py        # 10 training scripts
-│   ├── api_server.py     # Flask API
-│   └── docs/             # Documentation
-├── components/           # React components
-├── services/             # API services
-└── App.tsx              # Main app
-```
+Each trained model saves 4 files:
+- `dse_stroke_prediction_*.pkl` - Trained DSE model
+- `scaler_*.pkl` - StandardScaler for numerical features
+- `encoder_*.pkl` - OneHotEncoder for categorical features
+- `model_columns_*.pkl` - Feature column names
 
-### Training New Models
-```bash
-cd ml_training
+---
 
-# Train specific model
-python main.py --variant augmented_smote
+## ⚙️ Configuration
 
-# Train all models (3-5 hours)
-python main.py
-```
+Edit `ml_training/config.py` to customize:
+- Random seed
+- K-fold splits
+- Test size ratio
+- Model hyperparameters
+- Feature lists
 
-### Running Tests
-```bash
-# Test prediction service
-python predict_service.py
+---
 
-# Test API
-curl http://localhost:5000/api/health
-```
+## 🐛 Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| "No models loaded" when starting API | Train models first: `python main.py --variant agegroup_imbalanced` |
+| Memory error during training | Train models individually, not all at once |
+| NGBoost compatibility errors | Already excluded from ensemble (handled in code) |
+| Kaggle authentication error | Set up API credentials: `~/.kaggle/kaggle.json` |
 
 ---
 
@@ -260,9 +317,22 @@ curl http://localhost:5000/api/health
 
 ---
 
+## 📝 Notes
+
+- Training all 10 models takes ~2-4 hours depending on hardware
+- Each model requires ~500MB-1GB disk space
+- GPU acceleration available for XGBoost, LightGBM, CatBoost
+- SMOTE variants generally perform better on recall
+
+---
+
 ## 🤝 Contributing
 
-Contributions welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) first.
+Contributions welcome! To add new training variants:
+1. Copy `train_drop_imbalanced.py` as template
+2. Modify preprocessing in Step 3
+3. Update `MODEL_DIRS` in `config.py`
+4. Add import to `main.py`
 
 ---
 
@@ -285,20 +355,6 @@ Always consult qualified healthcare professionals for medical concerns.
 - Dataset: [Kaggle Stroke Prediction Dataset](https://www.kaggle.com/fedesoriano/stroke-prediction-dataset)
 - Based on DSE (Dense Stacking Ensemble) methodology
 - Inspired by recent research in medical ML
-
----
-
-## 📧 Contact
-
-For questions or support:
-- Open an issue on GitHub
-- Email: your-email@example.com
-
----
-
-## ⭐ Star This Repo!
-
-If you find this project useful, please consider giving it a star! ⭐
 
 ---
 
