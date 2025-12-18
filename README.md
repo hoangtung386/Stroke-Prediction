@@ -18,6 +18,8 @@ StrokeGuard AI is a cutting-edge web application that predicts stroke risk using
 - 🎨 **Beautiful UI** - Modern React + Vite interface
 - 🔧 **Production-Ready** - Complete API server
 
+![Web Interface](Interface_web.png)
+
 ---
 
 ## 🚀 Quick Start
