@@ -25,7 +25,7 @@ StrokeGuard AI is a cutting-edge web application that predicts stroke risk using
 ### 1. Clone Repository
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/hoangtung386/Stroke-Prediction.git
 cd Stroke-Prediction
 ```
 
@@ -80,7 +80,7 @@ To stop the servers, press `Ctrl + C` in each terminal window.
 
 ---
 
-## � Project Structure
+## 🗂️ Project Structure
 
 ```
 Stroke-Prediction/
