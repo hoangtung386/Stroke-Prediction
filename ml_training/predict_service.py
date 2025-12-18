@@ -1,25 +1,26 @@
 """
-Prediction service for web integration
-This module loads trained models and provides prediction interface
+Stroke Prediction Service
+Handles loading trained models and making predictions
 """
 import joblib
 import pandas as pd
 import numpy as np
 import os
+from config import NUMERICAL_COLS, CATEGORICAL_COLS
 
 
 class StrokePredictionService:
     """
-    Service class to load and use trained stroke prediction models
+    Service class for stroke prediction using trained models
     """
     
-    def __init__(self, model_dir, model_suffix):
+    def __init__(self, model_dir: str, model_suffix: str):
         """
-        Initialize the service with a trained model
+        Initialize the prediction service
         
         Args:
-            model_dir: Directory containing the model artifacts
-            model_suffix: Suffix of the model files (e.g., 'imbalanced_drop', 'smote_mean')
+            model_dir: Directory containing model artifacts
+            model_suffix: Suffix used when saving model (e.g., 'imbalanced_drop')
         """
         self.model_dir = model_dir
         self.model_suffix = model_suffix
@@ -30,174 +31,128 @@ class StrokePredictionService:
         self.encoder = self._load_artifact(f'encoder_{model_suffix}.pkl')
         self.model_columns = self._load_artifact(f'model_columns_{model_suffix}.pkl')
         
-        print(f"✅ Model loaded from: {model_dir}")
-        print(f"📊 Model expects {len(self.model_columns)} features")
-    
-    def _load_artifact(self, filename):
-        """Load a model artifact file"""
+    def _load_artifact(self, filename: str):
+        """Load a pickled artifact from the model directory"""
         filepath = os.path.join(self.model_dir, filename)
         if not os.path.exists(filepath):
-            raise FileNotFoundError(f"Model artifact not found: {filepath}")
+            raise FileNotFoundError(f"Artifact not found: {filepath}")
         return joblib.load(filepath)
     
-    def preprocess_input(self, patient_data):
+    def preprocess(self, data: dict) -> pd.DataFrame:
         """
-        Preprocess patient data for prediction
+        Preprocess input data for prediction
         
         Args:
-            patient_data: dict with patient information
-                Required keys: age, gender, hypertension, heart_disease, 
-                              ever_married, work_type, Residence_type, 
-                              avg_glucose_level, bmi, smoking_status
-        
+            data: Dictionary containing patient data
+            
         Returns:
             Preprocessed DataFrame ready for prediction
         """
-        # Create DataFrame from patient data
-        df = pd.DataFrame([patient_data])
+        # Convert to DataFrame
+        df = pd.DataFrame([data])
         
-        # Encode categorical variables
-        categorical_cols = ['gender', 'work_type', 'Residence_type', 'smoking_status']
-        
-        # One-Hot Encoding
-        encoded_features = self.encoder.transform(df[categorical_cols])
-        feature_names = self.encoder.get_feature_names_out(categorical_cols)
-        encoded_df = pd.DataFrame(encoded_features, columns=feature_names, index=df.index)
-        
-        # Drop original categorical columns
-        df = df.drop(columns=categorical_cols)
-        
-        # Concatenate encoded features
-        df = pd.concat([df, encoded_df], axis=1)
+        # Handle binary columns
+        df['ever_married'] = df['ever_married'].map({'Yes': 1, 'No': 0})
         
         # Scale numerical features
-        numerical_cols = ['age', 'avg_glucose_level', 'bmi']
-        df[numerical_cols] = self.scaler.transform(df[numerical_cols])
+        numerical_data = df[NUMERICAL_COLS].copy()
+        df[NUMERICAL_COLS] = self.scaler.transform(numerical_data)
         
-        # Ensure all required columns are present
+        # Encode categorical features
+        categorical_data = df[CATEGORICAL_COLS].copy()
+        encoded = self.encoder.transform(categorical_data)
+        
+        # Get encoded column names from encoder
+        encoded_cols = self.encoder.get_feature_names_out(CATEGORICAL_COLS)
+        encoded_df = pd.DataFrame(encoded, columns=encoded_cols, index=df.index)
+        
+        # Drop original categorical columns and add encoded ones
+        df = df.drop(columns=CATEGORICAL_COLS)
+        df = pd.concat([df, encoded_df], axis=1)
+        
+        # Ensure all expected columns are present
         for col in self.model_columns:
             if col not in df.columns:
                 df[col] = 0
         
-        # Reorder columns to match training data
+        # Reorder columns to match training
         df = df[self.model_columns]
         
         return df
     
-    def predict(self, patient_data):
+    def predict(self, data: dict) -> dict:
         """
-        Predict stroke risk for a patient
+        Make a prediction for a single patient
         
         Args:
-            patient_data: dict with patient information
-        
+            data: Dictionary containing patient data
+            
         Returns:
-            dict with prediction results:
-                - prediction: 0 (no stroke) or 1 (stroke)
-                - probability: float, probability of stroke (0-1)
-                - risk_level: str, risk category
-                - confidence: float, model confidence
+            Dictionary with prediction results
         """
-        # Preprocess input
-        processed_data = self.preprocess_input(patient_data)
+        # Preprocess data
+        processed = self.preprocess(data)
         
         # Make prediction
-        prediction = self.model.predict(processed_data)[0]
-        probabilities = self.model.predict_proba(processed_data)[0]
+        prediction = self.model.predict(processed)[0]
+        probability = self.model.predict_proba(processed)[0]
         
-        stroke_probability = probabilities[1]  # Probability of stroke (class 1)
-        
-        # Determine risk level
-        if stroke_probability < 0.3:
-            risk_level = "Low"
-        elif stroke_probability < 0.6:
-            risk_level = "Medium"
+        # Calculate risk level
+        stroke_prob = probability[1]
+        if stroke_prob < 0.3:
+            risk_level = 'Low'
+        elif stroke_prob < 0.6:
+            risk_level = 'Medium'
         else:
-            risk_level = "High"
+            risk_level = 'High'
         
         # Calculate confidence
-        confidence = max(probabilities)
+        confidence = abs(stroke_prob - 0.5) * 2  # 0 to 1 scale
         
         return {
             'prediction': int(prediction),
-            'probability': float(stroke_probability),
+            'probability': float(stroke_prob),
+            'no_stroke_probability': float(probability[0]),
             'risk_level': risk_level,
             'confidence': float(confidence),
-            'probability_no_stroke': float(probabilities[0]),
-            'probability_stroke': float(probabilities[1])
+            'interpretation': self._interpret_result(prediction, stroke_prob, risk_level)
         }
     
-    def predict_batch(self, patients_list):
+    def predict_batch(self, patients: list) -> list:
         """
-        Predict stroke risk for multiple patients
+        Make predictions for multiple patients
         
         Args:
-            patients_list: list of patient data dicts
-        
+            patients: List of patient data dictionaries
+            
         Returns:
-            list of prediction results
+            List of prediction results
         """
         results = []
-        for patient_data in patients_list:
-            result = self.predict(patient_data)
-            results.append(result)
+        for patient in patients:
+            try:
+                result = self.predict(patient)
+                results.append(result)
+            except Exception as e:
+                results.append({'error': str(e)})
         return results
     
-    def get_feature_importance(self):
-        """
-        Get feature importance if available
-        (Only works if final estimator has feature_importances_ attribute)
-        """
-        if hasattr(self.model.final_estimator_, 'feature_importances_'):
-            importances = self.model.final_estimator_.feature_importances_
-            feature_importance_df = pd.DataFrame({
-                'feature': self.model_columns,
-                'importance': importances
-            }).sort_values('importance', ascending=False)
-            return feature_importance_df
+    def _interpret_result(self, prediction: int, probability: float, risk_level: str) -> str:
+        """Generate human-readable interpretation of the prediction"""
+        if prediction == 1:
+            return (
+                f"High stroke risk detected ({probability:.1%} probability). "
+                f"Risk level: {risk_level}. "
+                "Recommend immediate consultation with a healthcare professional."
+            )
         else:
-            return None
-
-
-# Example usage function
-def example_usage():
-    """Example of how to use the prediction service"""
-    
-    # Initialize service with a trained model
-    service = StrokePredictionService(
-        model_dir='Model for Drop Missing Value Imbalanced',
-        model_suffix='imbalanced_drop'
-    )
-    
-    # Example patient data
-    patient_data = {
-        'age': 67,
-        'gender': 'Male',
-        'hypertension': 0,
-        'heart_disease': 1,
-        'ever_married': 'Yes',
-        'work_type': 'Private',
-        'Residence_type': 'Urban',
-        'avg_glucose_level': 228.69,
-        'bmi': 36.6,
-        'smoking_status': 'formerly smoked'
-    }
-    
-    # Make prediction
-    result = service.predict(patient_data)
-    
-    print("="*50)
-    print("PREDICTION RESULT")
-    print("="*50)
-    print(f"Prediction: {'Stroke' if result['prediction'] == 1 else 'No Stroke'}")
-    print(f"Stroke Probability: {result['probability']:.2%}")
-    print(f"Risk Level: {result['risk_level']}")
-    print(f"Confidence: {result['confidence']:.2%}")
-    print("="*50)
-    
-    return result
-
-
-if __name__ == "__main__":
-    # Run example
-    example_usage()
+            if risk_level == 'Medium':
+                return (
+                    f"Moderate stroke risk ({probability:.1%} probability). "
+                    "Monitor health factors and consider lifestyle modifications."
+                )
+            else:
+                return (
+                    f"Low stroke risk ({probability:.1%} probability). "
+                    "Continue maintaining a healthy lifestyle."
+                )

@@ -60,14 +60,14 @@ PARAM_GRIDS = {
 
 # Model output directories
 MODEL_DIRS = {
-    'drop_imbalanced': 'Model for Drop Missing Value Imbalanced',
-    'mean_imbalanced': 'Model for Mean Imputation',
-    'mice_imbalanced': 'Model for Mice Imputation Imbalanced',
-    'agegroup_imbalanced': 'Model for Age Group Imputation Imbalanced',
-    'augmented_imbalanced': 'Model for Augmented Imbalanced Dataset',
-    'drop_smote': 'Model for Drop Missing Value SMOTE',
-    'mean_smote': 'Model for Mean Imputation SMOTE',
-    'mice_smote': 'Model for Mice Imputation SMOTE',
-    'agegroup_smote': 'Model for Age Group Imputation SMOTE',
-    'augmented_smote': 'Model for Augmented SMOTE Dataset'
+    'drop_imbalanced': 'models/drop_imbalanced',
+    'mean_imbalanced': 'models/mean_imbalanced',
+    'mice_imbalanced': 'models/mice_imbalanced',
+    'agegroup_imbalanced': 'models/agegroup_imbalanced',
+    'augmented_imbalanced': 'models/augmented_imbalanced',
+    'drop_smote': 'models/drop_smote',
+    'mean_smote': 'models/mean_smote',
+    'mice_smote': 'models/mice_smote',
+    'agegroup_smote': 'models/agegroup_smote',
+    'augmented_smote': 'models/augmented_smote'
 }
