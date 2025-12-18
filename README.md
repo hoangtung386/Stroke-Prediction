@@ -4,7 +4,7 @@
 
 [![Accuracy](https://img.shields.io/badge/Accuracy-95--97%25-success)](ml_training/)
 [![Models](https://img.shields.io/badge/Models-10%20Variants-blue)](ml_training/)
-[![Tech](https://img.shields.io/badge/Tech-React%20%7C%20Python%20%7C%20ML-orange)](/)
+[![Tech](https://img.shields.io/badge/Tech-React%20%7C%20Vite%20%7C%20Python%20%7C%20ML-orange)](/)
 
 ## 🎯 Overview
 
@@ -15,12 +15,18 @@ StrokeGuard AI is a cutting-edge web application that predicts stroke risk using
 - 📊 **95-97% Accuracy** - Significantly better than AI estimation
 - ⚡ **<100ms Predictions** - Lightning fast
 - 🔒 **Privacy-First** - All processing on your server
-- 🎨 **Beautiful UI** - Modern React interface
+- 🎨 **Beautiful UI** - Modern React + Vite interface
 - 🔧 **Production-Ready** - Complete API server
 
 ---
 
 ## 🚀 Quick Start
+
+### Prerequisites
+
+- **Python 3.10+** with pip
+- **Node.js 18+** with npm
+- ~2GB disk space for models
 
 ### 1. Clone Repository
 
@@ -29,7 +35,7 @@ git clone https://github.com/hoangtung386/Stroke-Prediction.git
 cd Stroke-Prediction
 ```
 
-### 2. Install Dependencies
+### 2. Install Python Dependencies
 
 ```bash
 cd ml_training
@@ -50,25 +56,31 @@ python main.py --variant agegroup_imbalanced
 python main.py
 ```
 
-### 4. Start API Server (Terminal 1)
-
-```bash
-cd ml_training
-python api_server.py
-# API will run on http://localhost:5000
-```
-
-### 5. Start React App (Terminal 2)
+### 4. Install Frontend Dependencies
 
 ```bash
 cd ..  # Back to project root
 npm install
-npm run dev
-# App will open on http://localhost:5173
 ```
 
-### 6. Test the App! 🎉
+### 5. Start the System (2 Terminals Required)
 
+#### Terminal 1 - Start API Server:
+```bash
+cd ml_training
+python api_server.py
+```
+> API will run on http://localhost:5000
+
+#### Terminal 2 - Start Frontend:
+```bash
+npm run dev
+```
+> Frontend will run on http://localhost:3000
+
+### 6. Open the App! 🎉
+
+Open http://localhost:3000 in your browser:
 - Select a model from dropdown
 - Fill in patient data
 - Click "Analyze Risk"
@@ -76,7 +88,7 @@ npm run dev
 
 ### Stopping the Services
 
-To stop the servers, press `Ctrl + C` in each terminal window.
+Press `Ctrl + C` in each terminal to stop the servers.
 
 ---
 
@@ -84,30 +96,35 @@ To stop the servers, press `Ctrl + C` in each terminal window.
 
 ```
 Stroke-Prediction/
-├── ml_training/                       # ML training pipeline
-│   ├── config.py                      # Configuration and constants
-│   ├── data_preprocessing.py          # Data preprocessing utilities
-│   ├── model_utils.py                 # Model training utilities
-│   ├── predict_service.py             # Prediction service for web integration
-│   ├── api_server.py                  # Flask API server
-│   ├── main.py                        # Main orchestrator
-│   │
-│   ├── train_drop_imbalanced.py       # Drop + Imbalanced
-│   ├── train_mean_imbalanced.py       # Mean + Imbalanced
-│   ├── train_mice_imbalanced.py       # MICE + Imbalanced
-│   ├── train_agegroup_imbalanced.py   # Age Group + Imbalanced
-│   ├── train_augmented_imbalanced.py  # Augmented + Imbalanced
-│   │
-│   ├── train_drop_smote.py            # Drop + SMOTE
-│   ├── train_mean_smote.py            # Mean + SMOTE
-│   ├── train_mice_smote.py            # MICE + SMOTE
-│   ├── train_agegroup_smote.py        # Age Group + SMOTE
-│   └── train_augmented_smote.py       # Augmented + SMOTE
+├── src/                               # React Frontend (Vite)
+│   ├── components/                    # UI Components
+│   │   ├── Header.tsx
+│   │   ├── ModelSelector.tsx
+│   │   ├── PatientForm.tsx
+│   │   └── AnalysisResult.tsx
+│   ├── services/                      # API Services
+│   │   └── mlModelService.ts
+│   ├── App.tsx                        # Main App
+│   ├── main.tsx                       # Entry Point
+│   ├── index.css                      # Global Styles
+│   └── types.ts                       # TypeScript Types
 │
-├── components/                        # React components
-├── services/                          # API services
-├── App.tsx                            # Main React app
-└── index.html                         # HTML entry point
+├── ml_training/                       # ML Training Pipeline
+│   ├── config.py                      # Configuration
+│   ├── data_preprocessing.py          # Data preprocessing
+│   ├── model_utils.py                 # Model utilities
+│   ├── predict_service.py             # Prediction service
+│   ├── api_server.py                  # Flask API server
+│   ├── main.py                        # Training orchestrator
+│   ├── requirements.txt               # Python dependencies
+│   └── train_*.py                     # Training scripts
+│
+├── public/                            # Static assets
+├── index.html                         # HTML entry
+├── package.json                       # npm config
+├── vite.config.ts                     # Vite config (with API proxy)
+├── tailwind.config.js                 # Tailwind CSS
+└── tsconfig.json                      # TypeScript config
 ```
 
 ---
@@ -141,7 +158,7 @@ Trained Model (95-97% accuracy)
 ```
 
 ### Tech Stack
-- **Frontend**: React + TypeScript + Tailwind CSS
+- **Frontend**: React 18 + TypeScript + Vite + Tailwind CSS
 - **Backend**: Python + Flask + CORS
 - **ML**: Scikit-learn + XGBoost + LightGBM + CatBoost
 - **Data**: Kaggle Stroke Prediction Dataset
@@ -170,91 +187,33 @@ Trained Model (95-97% accuracy)
 
 ---
 
-## � Using Trained Models
-
-### Python API
-
-```python
-from predict_service import StrokePredictionService
-
-# Load trained model
-service = StrokePredictionService(
-    model_dir='models/agegroup_imbalanced',
-    model_suffix='imbalanced_agegroup'
-)
-
-# Patient data
-patient = {
-    'age': 67,
-    'gender': 'Male',
-    'hypertension': 0,
-    'heart_disease': 1,
-    'ever_married': 'Yes',
-    'work_type': 'Private',
-    'Residence_type': 'Urban',
-    'avg_glucose_level': 228.69,
-    'bmi': 36.6,
-    'smoking_status': 'formerly smoked'
-}
-
-# Predict
-result = service.predict(patient)
-
-print(f"Prediction: {result['prediction']}")  # 0 or 1
-print(f"Probability: {result['probability']:.2%}")
-print(f"Risk Level: {result['risk_level']}")  # Low/Medium/High
-```
-
-### Batch Prediction
-
-```python
-patients_list = [patient1, patient2, patient3]
-results = service.predict_batch(patients_list)
-```
-
----
-
 ## 🔧 API Endpoints
 
-### Health Check
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/health` | GET | Health check |
+| `/api/models` | GET | List available models |
+| `/api/predict` | POST | Single prediction |
+| `/api/predict-batch` | POST | Batch predictions |
+| `/api/compare` | POST | Compare multiple models |
+
+### Example: Single Prediction
 ```bash
-GET /api/health
-```
-
-### List Models
-```bash
-GET /api/models
-```
-
-### Single Prediction
-```bash
-POST /api/predict
-Content-Type: application/json
-
-{
-  "age": 67,
-  "gender": "Male",
-  "hypertension": 0,
-  "heart_disease": 1,
-  "ever_married": "Yes",
-  "work_type": "Private",
-  "Residence_type": "Urban",
-  "avg_glucose_level": 228.69,
-  "bmi": 36.6,
-  "smoking_status": "formerly smoked",
-  "model_id": "agegroup_imbalanced"
-}
-```
-
-### Compare Models
-```bash
-POST /api/compare
-Content-Type: application/json
-
-{
-  "patient_data": { ... },
-  "model_ids": ["agegroup_imbalanced", "augmented_smote"]
-}
+curl -X POST http://localhost:5000/api/predict \
+  -H "Content-Type: application/json" \
+  -d '{
+    "age": 67,
+    "gender": "Male",
+    "hypertension": 0,
+    "heart_disease": 1,
+    "ever_married": "Yes",
+    "work_type": "Private",
+    "Residence_type": "Urban",
+    "avg_glucose_level": 228.69,
+    "bmi": 36.6,
+    "smoking_status": "formerly smoked",
+    "model_id": "agegroup_imbalanced"
+  }'
 ```
 
 ---
@@ -271,74 +230,48 @@ Content-Type: application/json
 
 ---
 
-## � Model Artifacts
-
-Each trained model saves 4 files:
-- `dse_stroke_prediction_*.pkl` - Trained DSE model
-- `scaler_*.pkl` - StandardScaler for numerical features
-- `encoder_*.pkl` - OneHotEncoder for categorical features
-- `model_columns_*.pkl` - Feature column names
-
----
-
-## ⚙️ Configuration
-
-Edit `ml_training/config.py` to customize:
-- Random seed
-- K-fold splits
-- Test size ratio
-- Model hyperparameters
-- Feature lists
-
----
-
 ## 🐛 Troubleshooting
 
 | Issue | Solution |
 |-------|----------|
 | "No models loaded" when starting API | Train models first: `python main.py --variant agegroup_imbalanced` |
+| Port 3000 already in use | Kill the process: `lsof -ti:3000 \| xargs kill -9` |
+| Port 5000 already in use | Kill the process: `lsof -ti:5000 \| xargs kill -9` |
 | Memory error during training | Train models individually, not all at once |
-| NGBoost compatibility errors | Already excluded from ensemble (handled in code) |
-| Kaggle authentication error | Set up API credentials: `~/.kaggle/kaggle.json` |
+| npm install fails | Ensure Node.js 18+ is installed: `node --version` |
+| API connection refused | Ensure Flask API is running on port 5000 |
 
 ---
 
-## 🚀 Deployment
+## 🚀 Development Commands
+
+```bash
+# Start frontend dev server
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+
+# Lint code
+npm run lint
+```
+
+---
+
+## 📦 Deployment
 
 ### Option 1: Single Server (Recommended)
 1. Build React: `npm run build`
-2. Serve from Flask (see `api_server.py`)
+2. Serve static files from Flask (configure in `api_server.py`)
 3. Deploy to Heroku/Railway/Render
 
 ### Option 2: Separate Deployments
 - **Backend**: Deploy Flask API to Heroku/Railway
 - **Frontend**: Deploy React to Vercel/Netlify
 - Update API URL in environment variables
-
----
-
-## 📝 Notes
-
-- Training all 10 models takes ~2-4 hours depending on hardware
-- Each model requires ~500MB-1GB disk space
-- GPU acceleration available for XGBoost, LightGBM, CatBoost
-- SMOTE variants generally perform better on recall
-
----
-
-## 🤝 Contributing
-
-Contributions welcome! To add new training variants:
-1. Copy `train_drop_imbalanced.py` as template
-2. Modify preprocessing in Step 3
-3. Update `MODEL_DIRS` in `config.py`
-4. Add import to `main.py`
-
----
-
-## 📄 License
-
-MIT License - see [LICENSE](LICENSE)
 
 ---
 
