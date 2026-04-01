@@ -1,31 +1,74 @@
-# 🏥 StrokeGuard AI - Production ML-Powered Stroke Prediction
+# StrokeGuard AI - ML-Powered Stroke Prediction
 
-> Enterprise-grade stroke risk assessment platform powered by Dense Stacking Ensemble (DSE) machine learning models
+> Stroke risk assessment platform powered by Dense Stacking Ensemble (DSE) machine learning models
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE.txt)
-[![ML Accuracy](https://img.shields.io/badge/Accuracy-95--97%25-success)](ml_training/)
-[![Models](https://img.shields.io/badge/Models-10%20Variants-blue)](ml_training/)
+[![ML Accuracy](https://img.shields.io/badge/Accuracy-95--97%25-success)](backend/)
+[![Models](https://img.shields.io/badge/Models-10%20Variants-blue)](backend/)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://www.python.org/)
 [![React](https://img.shields.io/badge/React-18.3-61dafb)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178c6)](https://www.typescriptlang.org/)
 
-![StrokeGuard AI Interface](Interface_web.png)
+![StrokeGuard AI Interface](docs/Interface_web.png)
 
-## 🎯 About
+## About
 
-**StrokeGuard AI** is a production-ready stroke risk prediction platform that combines advanced machine learning with modern web technologies. The system achieves **95-97% accuracy** using a proprietary Dense Stacking Ensemble (DSE) architecture trained on clinical stroke data.
+**StrokeGuard AI** is a stroke risk prediction platform that combines advanced machine learning with modern web technologies. The system achieves **95-97% accuracy** using a Dense Stacking Ensemble (DSE) architecture trained on clinical stroke data.
 
 ### Key Features
 
-- 🎓 **10 Trained ML Models** - Multiple model variants with different preprocessing strategies
-- 📊 **High Accuracy** - 95-97% prediction accuracy, significantly outperforming traditional methods  
-- ⚡ **Real-time Predictions** - Sub-100ms inference time for instant results
-- 🔒 **Privacy-First** - All processing happens on your infrastructure
-- 🎨 **Modern UI** - Beautiful, responsive React + TypeScript interface
-- 🔧 **Production-Ready** - Complete Flask REST API with CORS support
-- 📈 **Comprehensive Metrics** - Detailed risk analysis with contributing factors
+- **10 Trained ML Models** - Multiple model variants with different preprocessing strategies
+- **High Accuracy** - 95-97% prediction accuracy
+- **Real-time Predictions** - Sub-100ms inference time
+- **Modern UI** - Responsive React + TypeScript interface
+- **REST API** - Complete Flask API with CORS support
 
-## 🚀 Quick Start
+## Project Structure
+
+```
+Stroke-Prediction/
+├── frontend/                     # React Frontend (TypeScript + Vite)
+│   ├── src/
+│   │   ├── components/          # UI Components
+│   │   │   ├── Header.tsx
+│   │   │   ├── ModelSelector.tsx
+│   │   │   ├── PatientForm.tsx
+│   │   │   └── AnalysisResult.tsx
+│   │   ├── types/               # TypeScript type definitions
+│   │   │   ├── patient.ts
+│   │   │   └── prediction.ts
+│   │   ├── constants/           # Form options, etc.
+│   │   ├── services/            # API integration layer
+│   │   │   └── mlModelService.ts
+│   │   └── App.tsx
+│   ├── package.json
+│   └── vite.config.ts
+│
+├── backend/                      # Python ML Backend
+│   ├── config.py                # Configuration & hyperparameters
+│   ├── data_preprocessing.py    # Data preprocessing utilities
+│   ├── model_utils.py           # Model training utilities
+│   ├── training/
+│   │   └── train.py             # Unified training script (all 10 variants)
+│   ├── api/
+│   │   ├── server.py            # Flask REST API
+│   │   └── predict_service.py   # Prediction service
+│   ├── tests/                   # Unit tests
+│   ├── scripts/                 # Quick start scripts
+│   ├── pyproject.toml           # Project config (uv / pip)
+│   └── requirements.txt
+│
+├── docs/                         # Documentation
+│   ├── TRAINING_GUIDE.md
+│   ├── WEB_INTEGRATION.md
+│   └── SUMMARY.md
+│
+├── .gitignore
+├── README.md
+└── LICENSE.txt
+```
+
+## Quick Start
 
 ### Prerequisites
 
@@ -33,115 +76,83 @@
 - Node.js 18 or higher
 - ~2GB disk space for trained models
 
-### Installation with Pre-trained Models
+### Option A: Setup with uv (recommended)
 
-To use the pre-trained models without training from scratch:
-
-1. **Download Source Code**: Clone this repository.
-2. **Download Models**: Go to the [Releases](https://github.com/hoangtung386/Stroke-Prediction/releases) page and download `models.zip`.
-3. **Setup Directory**: Extract the zip file into the `ml_training/` folder. Ensure the structure matches:
-
-```text
-ml_training/
-├── models/
-│   ├── drop_imbalanced/
-│   ├── mean_smote/
-│   └── ...
-├── api_server.py
-└── ...
-```
-
-4. **Run Server**:
-```bash
-python ml_training/api_server.py
-```
-
-### Installation & Setup
+[uv](https://docs.astral.sh/uv/) is a fast Python package manager that handles virtual environments automatically.
 
 ```bash
 # 1. Clone the repository
 git clone https://github.com/hoangtung386/Stroke-Prediction.git
 cd Stroke-Prediction
 
-# 2. Install Python dependencies
-cd ml_training
-pip install -r requirements.txt
+# 2. Install backend dependencies (auto-creates .venv)
+cd backend
+uv sync
 
-# 3. Train your first model (required before running API)
-python main.py --variant agegroup_imbalanced
+# 3. Train your first model
+uv run python -m training.train --imputation agegroup --balancing imbalanced
 
 # 4. Install frontend dependencies
-cd ..
+cd ../frontend
 npm install
 ```
 
-### Running the Application
+**Running with uv:**
 
-You need **two terminals**:
-
-**Terminal 1 - Start API Server:**
 ```bash
-cd ml_training
-python api_server.py
+# Terminal 1 - API Server
+cd backend
+uv run python -m api.server
+
+# Terminal 2 - Frontend
+cd frontend
+npm run dev
 ```
 
-**Terminal 2 - Start Frontend:**
+### Option B: Setup with pip
+
 ```bash
+# 1. Clone the repository
+git clone https://github.com/hoangtung386/Stroke-Prediction.git
+cd Stroke-Prediction
+
+# 2. Create virtual environment and install dependencies
+cd backend
+python -m venv .venv
+source .venv/bin/activate   # Linux/macOS
+# .venv\Scripts\activate    # Windows
+pip install -r requirements.txt
+
+# 3. Train your first model
+python -m training.train --imputation agegroup --balancing imbalanced
+
+# 4. Install frontend dependencies
+cd ../frontend
+npm install
+```
+
+**Running with pip:**
+
+```bash
+# Terminal 1 - API Server
+cd backend
+source .venv/bin/activate
+python -m api.server
+
+# Terminal 2 - Frontend
+cd frontend
 npm run dev
 ```
 
 Open http://localhost:3000 in your browser.
 
-## 📂 Project Structure
-
-```
-Stroke-Prediction/
-├── src/                          # React Frontend (TypeScript + Vite)
-│   ├── components/              # UI Components
-│   │   ├── Header.tsx
-│   │   ├── ModelSelector.tsx   # Model selection interface
-│   │   ├── PatientForm.tsx
-│   │   └── AnalysisResult.tsx
-│   ├── services/
-│   │   └── mlModelService.ts   # API integration layer
-│   ├── App.tsx
-│   └── types.ts
-│
-├── ml_training/                 # ML Training Pipeline
-│   ├── config.py               # Configuration & hyperparameters
-│   ├── data_preprocessing.py   # Data preprocessing utilities
-│   ├── model_utils.py          # Model training utilities  
-│   ├── predict_service.py      # Prediction service
-│   ├── api_server.py           # Flask REST API
-│   ├── main.py                 # Training orchestrator
-│   │
-│   ├── train_*.py              # 10 training scripts
-│   │   ├── train_drop_imbalanced.py
-│   │   ├── train_mean_imbalanced.py
-│   │   ├── train_mice_imbalanced.py
-│   │   ├── train_agegroup_imbalanced.py
-│   │   ├── train_augmented_imbalanced.py
-│   │   ├── train_drop_smote.py
-│   │   ├── train_mean_smote.py
-│   │   ├── train_mice_smote.py
-│   │   ├── train_agegroup_smote.py
-│   │   └── train_augmented_smote.py
-│   │
-│   └── models/                 # Trained models directory (gitignored)
-│
-├── public/
-├── package.json
-├── vite.config.ts
-└── README.md
-```
-
-## 🧠 ML Architecture
+## ML Architecture
 
 ### Dense Stacking Ensemble (DSE)
 
-Our proprietary DSE architecture combines 9 base algorithms through multiple ensemble layers:
+The DSE architecture combines 8 base algorithms through multiple ensemble layers:
 
-**Base Models (9 algorithms):**
+**Base Models:**
 - Logistic Regression (AGD)
 - Neural Network (5 hidden layers)
 - Random Forest
@@ -150,14 +161,12 @@ Our proprietary DSE architecture combines 9 base algorithms through multiple ens
 - LightGBM
 - XGBoost
 - Balanced Bagging
-- NGBoost
 
 **Ensemble Layers:**
 1. Voting Ensemble (soft voting)
 2. Blending Ensemble (stacking with meta-classifier)
 3. Fusion Ensemble (stacking with passthrough)
-
-**Final Layer:** Dense Stacking Ensemble
+4. Final Dense Stacking Ensemble
 
 ### Available Model Variants
 
@@ -172,18 +181,33 @@ Our proprietary DSE architecture combines 9 base algorithms through multiple ens
 | `mean_smote` | Mean + SMOTE balance | Recommended |
 | `mice_smote` | MICE + SMOTE balance | Advanced + balanced |
 | `agegroup_smote` | Age Group + SMOTE | Domain + balanced |
-| `augmented_smote` ⭐ | Augmented + SMOTE | **Best performance** |
+| `augmented_smote` | Augmented + SMOTE | **Best performance** |
 
-## 📊 Performance Metrics
+## Training Models
 
-| Model Variant | Accuracy | Precision | Recall | F1-Score | AUC |
-|--------------|----------|-----------|--------|----------|-----|
-| Drop + Imbalanced | 94-95% | 0.92 | 0.89 | 0.90 | 0.94 |
-| Mean + Imbalanced | 94-95% | 0.93 | 0.88 | 0.90 | 0.95 |
-| MICE + Imbalanced | 95-96% | 0.94 | 0.90 | 0.92 | 0.96 |
-| **Augmented + SMOTE** ⭐ | **96-97%** | **0.96** | **0.94** | **0.95** | **0.97** |
+### Train a Single Model
 
-## 🔧 API Documentation
+```bash
+cd backend
+
+# With uv
+uv run python -m training.train --imputation augmented --balancing smote
+
+# With pip (venv activated)
+python -m training.train --imputation augmented --balancing smote
+```
+
+### Train All Models
+
+```bash
+cd backend
+uv run python -m training.train --all
+# or: python -m training.train --all
+```
+
+**Note:** Training all 10 models takes approximately 3-5 hours depending on hardware.
+
+## API Documentation
 
 ### Endpoints
 
@@ -225,109 +249,50 @@ curl -X POST http://localhost:5000/api/predict \
   "confidence": 0.9234,
   "model_id": "augmented_smote",
   "model_name": "Augmented + SMOTE",
-  "model_description": "Combined preprocessing with SMOTE balancing"
+  "model_description": "Augmented dataset (3 methods), SMOTE balanced"
 }
 ```
 
-## 🎓 Training Models
-
-### Train a Single Model
-
-```bash
-cd ml_training
-python main.py --variant augmented_smote
-```
-
-### Train All Models
-
-```bash
-python main.py
-```
-
-**Note:** Training all 10 models takes approximately 3-5 hours depending on your hardware.
-
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Frontend
-- **React 18** - UI framework
-- **TypeScript 5.7** - Type safety
-- **Vite 6** - Build tool & dev server
+- **React 18** + **TypeScript 5.7** + **Vite 6**
 - **Tailwind CSS 3.4** - Styling
 - **Recharts** - Data visualization
 - **Lucide React** - Icons
 
 ### Backend
-- **Python 3.10+** - Runtime
-- **Flask** - Web framework
+- **Python 3.10+** + **Flask**
 - **Scikit-learn** - ML framework
 - **XGBoost, LightGBM, CatBoost** - Gradient boosting
-- **NGBoost** - Probabilistic predictions
 - **Imbalanced-learn** - SMOTE implementation
-
-### Infrastructure
-- **Flask-CORS** - Cross-origin support
 - **Joblib** - Model serialization
-- **Pandas & NumPy** - Data processing
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 | Issue | Solution |
 |-------|----------|
-| "No models loaded" | Train at least one model first: `python main.py --variant agegroup_imbalanced` |
-| Port 3000 in use | Change port in `vite.config.ts` or kill process: `lsof -ti:3000 \| xargs kill -9` |
-| Port 5000 in use | Change port in `api_server.py` or kill process: `lsof -ti:5000 \| xargs kill -9` |
-| API connection refused | Ensure Flask server is running: `python api_server.py` |
-| Import errors | Install dependencies: `pip install -r ml_training/requirements.txt` |
+| "No models loaded" | Train at least one model: `cd backend && uv run python -m training.train --imputation agegroup --balancing imbalanced` |
+| Port 3000 in use | Change port in `frontend/vite.config.ts` |
+| Port 5000 in use | Set `PORT` env var: `PORT=5001 python -m api.server` |
+| API connection refused | Ensure Flask server is running |
+| Import errors | Install dependencies: `cd backend && uv sync` or `pip install -r requirements.txt` |
 
-## 📚 Documentation
+## Documentation
 
-- [Training Guide](ml_training/TRAINING_GUIDE.md) - Complete training walkthrough
-- [Web Integration](ml_training/WEB_INTEGRATION.md) - Frontend-backend integration
-- [Project Summary](ml_training/SUMMARY.md) - Technical overview
-- [Final Summary](FINAL_SUMMARY.md) - Project completion details
+- [Training Guide](docs/TRAINING_GUIDE.md) - Complete training walkthrough
+- [Web Integration](docs/WEB_INTEGRATION.md) - Frontend-backend integration
+- [Project Summary](docs/SUMMARY.md) - Technical overview
 
-## 🚀 Deployment
-
-### Option 1: Single Server (Recommended)
-
-```bash
-# Build frontend
-npm run build
-
-# Serve static files from Flask
-# Update api_server.py to serve the build folder
-python api_server.py
-```
-
-### Option 2: Separate Services
-
-- **Backend**: Deploy Flask API to Heroku/Railway/Render
-- **Frontend**: Deploy React to Vercel/Netlify/Cloudflare Pages
-- Update `REACT_APP_ML_API_URL` environment variable
-
-## ⚠️ Medical Disclaimer
+## Medical Disclaimer
 
 **IMPORTANT:** This application is for **educational and research purposes only**. It is **NOT** a medical diagnostic tool and should **NOT** replace professional medical advice, diagnosis, or treatment.
 
-**Always consult qualified healthcare professionals** for medical concerns.
-
-## 📄 License
+## License
 
 This project is licensed under the Apache License 2.0 - see the [LICENSE.txt](LICENSE.txt) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - **Dataset**: [Kaggle Stroke Prediction Dataset](https://www.kaggle.com/fedesoriano/stroke-prediction-dataset)
 - **Methodology**: Based on Dense Stacking Ensemble (DSE) architecture
-- **Inspiration**: Recent advances in medical ML research
-
-## 📞 Support
-
-For issues, questions, or contributions:
-- **GitHub Issues**: [Report a bug](https://github.com/hoangtung386/Stroke-Prediction/issues)
-- **Documentation**: Check the guides in `ml_training/`
-- **Model Training**: See `TRAINING_GUIDE.md` for detailed instructions
-
----
-
-*Last updated: December 2025*

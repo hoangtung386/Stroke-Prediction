@@ -25,7 +25,6 @@ build/
 .vscode/*
 !.vscode/extensions.json
 .idea/
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
@@ -33,7 +32,6 @@ build/
 *.sw?
 *.swp
 *.swo
-*~
 
 # Logs
 logs/
@@ -62,19 +60,17 @@ htmlcov/
 *.pt
 *.pth
 
-# IMPORTANT: Trained models directory
+# Trained models directory
 # Models are too large for GitHub (~1GB total)
 # Users must train models locally
-ml_training/models/
-ml_training/Model*/
-ml_training/*.pkl
-ml_training/*.joblib
+backend/models/
+backend/training/models/
 
 # Jupyter Notebooks
 .ipynb_checkpoints/
 *.ipynb
 
-# Data files (if you store datasets locally)
+# Data files
 *.csv
 *.xlsx
 *.xls
@@ -111,6 +107,7 @@ pip-delete-this-directory.txt
 # IDEs
 .vscode/
 .idea/
+.claude/
 *.sublime-project
 *.sublime-workspace
 
@@ -122,9 +119,8 @@ temp/
 *.bak
 *.backup
 
-# CatBoost specific
+# CatBoost training artifacts
 catboost_info/
 
-# System files
-.DS_Store
-*.DS_Store
+# Refactoring guide (internal)
+REFACTORING_GUIDE.md
